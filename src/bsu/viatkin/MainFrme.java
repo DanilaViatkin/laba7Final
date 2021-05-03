@@ -152,9 +152,32 @@ Thread.interrupted();
         }).start();
     }
 //Функция проверки корректности IP-адресса (2А)
-    public static boolean isCorrect(final String address){
-        String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
-        return address.matches(PATTERN);
+    public static boolean isCorrect(final String address) {
+        try {
+            if (address == null || address.isEmpty()) return false;
+
+            String[] parts = address.split("\\.");
+
+            if (parts.length != 4) return false;
+
+            if(address.endsWith(".")) return false;
+
+            for (String part : parts) {
+                int IntPart = Integer.parseInt(part);
+                if (IntPart < 0 || IntPart > 255)
+                    return false;
+            }
+            return true;
+        }catch(NumberFormatException k) {
+            String[] partsCatch = address.split("\\.");
+
+            for (String partCatch : partsCatch){
+                int IntPartCatch = Integer.parseInt(partCatch,16);
+                if (IntPartCatch < 0 || IntPartCatch > 255)
+                    return false;
+            }
+            return true;
+        }
     }
 
     private void sendMessage() {

@@ -26,13 +26,15 @@ public class MainFrame extends JFrame {
     private static final int FRAME_MINIMUM_WIDTH = 500;
     private static final int FRAME_MINIMUM_HEIGHT = 500;
     private static final int FROM_FIELD_DEFAULT_COLUMNS = 10;
-    private static final int TO_FIELD_DEFAULT_COLUMNS = 20;
+    private static final int TO_FIELD_DEFAULT_COLUMNS = 10;
+    private static final int TYPE_FIELD_DEFAULT_COLUMNS = 5;
     private static final int INCOMING_AREA_DEFAULT_ROWS = 10;
     private static final int OUTGOING_AREA_DEFAULT_ROWS = 5;
     private static final int SMALL_GAP = 5;
     private static final int MEDIUM_GAP = 10;
     private static final int LARGE_GAP = 15;
     private static final int SERVER_PORT = 4567;
+    private static JTextField textTypeOf;
     private final JTextField textFieldFrom;
     private final JTextField textFieldTo;
     private final JTextArea textAreaIncoming;
@@ -53,9 +55,11 @@ public class MainFrame extends JFrame {
         // Подписи полей
         final JLabel labelFrom = new JLabel("Подпись");
         final JLabel labelTo = new JLabel("Получатель");
+        final JLabel labelNum = new JLabel("Вид");
         // Поля ввода имени пользователя и адреса получателя
         textFieldFrom = new JTextField(FROM_FIELD_DEFAULT_COLUMNS);
         textFieldTo = new JTextField(TO_FIELD_DEFAULT_COLUMNS);
+        textTypeOf = new JTextField(TYPE_FIELD_DEFAULT_COLUMNS); 
         // Текстовая область для ввода сообщения
         textAreaOutgoing = new JTextArea(OUTGOING_AREA_DEFAULT_ROWS, 0);
         // Контейнер, обеспечивающий прокрутку текстовой области
@@ -72,34 +76,40 @@ public class MainFrame extends JFrame {
             }
         });
         // Компоновка элементов панели "Сообщение"
-        final GroupLayout layout2 = new GroupLayout(messagePanel);
-        messagePanel.setLayout(layout2);
-        layout2.setHorizontalGroup(layout2.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout2.createParallelGroup(Alignment.TRAILING)
-                        .addGroup(layout2.createSequentialGroup()
-                                .addComponent(labelFrom)
-                                .addGap(SMALL_GAP)
-                                .addComponent(textFieldFrom)
-                                .addGap(LARGE_GAP)
-                                .addComponent(labelTo)
-                                .addGap(SMALL_GAP)
-                                .addComponent(textFieldTo))
-                        .addComponent(scrollPaneOutgoing)
-                        .addComponent(sendButton))
-                .addContainerGap());
-        layout2.setVerticalGroup(layout2.createSequentialGroup()
-                .addContainerGap().addGroup(layout2.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(labelFrom)
-                        .addComponent(textFieldFrom)
-                        .addComponent(labelTo)
-                        .addComponent(textFieldTo))
-                .addGap(MEDIUM_GAP)
-                .addComponent(scrollPaneOutgoing)
-                .addGap(MEDIUM_GAP)
-                .addComponent(sendButton)
-                .addContainerGap());
-// Компоновка элементов фрейма
+          final GroupLayout layout2 = new GroupLayout(messagePanel);
+                 messagePanel.setLayout(layout2);
+                 layout2.setHorizontalGroup(layout2.createSequentialGroup()
+                         .addContainerGap()
+                         .addGroup(layout2.createParallelGroup(Alignment.TRAILING)
+                                 .addGroup(layout2.createSequentialGroup()
+                                         .addComponent(labelFrom)
+                                         .addGap(SMALL_GAP)
+                                         .addComponent(textFieldFrom)
+                                         .addGap(LARGE_GAP)
+                                         .addComponent(labelNum)
+                                         .addGap(SMALL_GAP)
+                                         .addComponent(textTypeOf)
+                                         .addGap(LARGE_GAP)
+                                         .addComponent(labelTo)
+                                         .addGap(SMALL_GAP)
+                                         .addComponent(textFieldTo))
+                                 .addComponent(scrollPaneOutgoing)
+                                 .addComponent(sendButton))
+                         .addContainerGap());
+                 layout2.setVerticalGroup(layout2.createSequentialGroup()
+                         .addContainerGap().addGroup(layout2.createParallelGroup(Alignment.BASELINE)
+                                 .addComponent(labelFrom)
+                                 .addComponent(textFieldFrom)
+                                 .addComponent(labelNum)
+                                 .addComponent(textTypeOf)
+                                 .addComponent(labelTo)
+                                 .addComponent(textFieldTo))
+                         .addGap(MEDIUM_GAP)
+                         .addComponent(scrollPaneOutgoing)
+                         .addGap(MEDIUM_GAP)
+                         .addComponent(sendButton)
+                         .addContainerGap());
+ // Компоновка элементов фрейма
         final GroupLayout layout1 = new GroupLayout(getContentPane());
         setLayout(layout1);
         layout1.setHorizontalGroup(layout1.createSequentialGroup()
@@ -114,30 +124,30 @@ public class MainFrame extends JFrame {
                 .addGap(MEDIUM_GAP)
                 .addComponent(messagePanel)
                 .addContainerGap());
-Thread.interrupted();
+        Thread.interrupted();
 // Создание и запуск потока-обработчика запросов
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final ServerSocket serverSocket =
-                            new ServerSocket(SERVER_PORT);
+                    final ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
                     while (!Thread.interrupted()) {
                         final Socket socket = serverSocket.accept();
+                        // Вызываем поток для чтения
                         final DataInputStream in = new DataInputStream(socket.getInputStream());
-                     // Читаем имя отправителя
+                        // Читаем имя отправителя
                         final String senderName = in.readUTF();
-                     // Читаем сообщение
+                        // Читаем сообщение
                         final String message = in.readUTF();
                         // Закрываем соединение
                         socket.close();
-                     // Выделяем IP-адрес
+                        // Выделяем IP-адрес
                         final String address =
                                 ((InetSocketAddress) socket
                                         .getRemoteSocketAddress())
                                         .getAddress()
                                         .getHostAddress();
-                      // Выводим сообщение в текстовую область
+                        // Выводим сообщение в текстовую область
                         textAreaIncoming.append(senderName +
                                 " (" + address + "): " +
                                 message + "\n");
@@ -151,7 +161,8 @@ Thread.interrupted();
             }
         }).start();
     }
-//Функция проверки корректности IP-адресса (2А)
+
+    //Функция проверки корректности IP-адресса (2А)
     public static boolean isCorrect(final String address) {
         try {
             if (address == null || address.isEmpty()) return false;
@@ -161,7 +172,7 @@ Thread.interrupted();
             if (parts.length != 4) return false;
 
             if(address.endsWith(".")) return false;
-
+                                                           
             for (String part : parts) {
                 int IntPart = Integer.parseInt(part);
                 if (IntPart < 0 || IntPart > 255)
@@ -182,10 +193,29 @@ Thread.interrupted();
 
     private void sendMessage() {
         try {
-// Получаем необходимые параметры
-            final String senderName = textFieldFrom.getText();
-            final String destinationAddress = textFieldTo.getText();
-            final String message = textAreaOutgoing.getText();
+        // Получаем необходимые параметры
+           final String senderName = textFieldFrom.getText();
+           final String destinationAddress = textFieldTo.getText();
+           final String message = textAreaOutgoing.getText();
+           final String type = textTypeOf.getText();
+           String addressConnection = "";
+          // Замена 16-тиричной формы 10-тиричной
+           if (Integer.parseInt(type) == 16) {
+               String[] parts = destinationAddress.split("\\.");
+               for (String part : parts) {
+                   int number = Integer.parseInt(part,16);
+                   part = String.valueOf(number);
+                   if(!addressConnection.isEmpty())
+                       addressConnection += ".";
+                   addressConnection += part;
+               }
+           }
+           if (Integer.parseInt(type) != 10 && Integer.parseInt(type) != 16){
+               JOptionPane.showMessageDialog(this,
+                       "Неверный тип IP адресса", "Ошибка",
+                       JOptionPane.ERROR_MESSAGE);
+               return;
+           }
 // Убеждаемся, что поля не пустые
             if (senderName.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
@@ -206,16 +236,21 @@ Thread.interrupted();
                 return;
             }
 //Проверка правильности IP-адреса получателя (2A)
-            if (!isCorrect(destinationAddress)){
+            if (!isCorrect(destinationAddress)) {
                 JOptionPane.showMessageDialog(this,
-                        "Введен неверный прикол","Ошибка",
+                        "Введен неверный прикол", "Ошибка",
                         JOptionPane.ERROR_MESSAGE);
                 textFieldTo.setCaretPosition(destinationAddress.length());
                 textFieldTo.requestFocus();
                 return;
             }
 // Создаем сокет для соединения
-            final Socket socket = new Socket(destinationAddress, SERVER_PORT);
+            final Socket socket;
+            if (addressConnection.isEmpty()) {
+                 socket = new Socket(destinationAddress, SERVER_PORT);
+            } else{
+                 socket = new Socket(addressConnection, SERVER_PORT);
+            }
 // Открываем поток вывода данных
             final DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 // Записываем в поток имя
@@ -225,7 +260,7 @@ Thread.interrupted();
 // Закрываем сокет
             socket.close();
 // Помещаем сообщения в текстовую область вывода
-            textAreaIncoming.append("Я "  + ": " + message + "\n");
+            textAreaIncoming.append("Я " + ": " + message + "\n");
 // Очищаем текстовую область ввода сообщения
             textAreaOutgoing.setText("");
         } catch (UnknownHostException e) {
@@ -242,11 +277,8 @@ Thread.interrupted();
     }
 
     public static void main(String[] args) {
-        
-       
-            public void run() {
-               final MainFrame frame = new MainFrame();
-               frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-               frame.setVisible(true);
+        final MainFrame frame = new MainFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
     }
 }
